@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Merchant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
+use App\Services\CloudinaryImageService;
 use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
@@ -65,7 +66,8 @@ class RestaurantController extends Controller
         $logoPath = null;
 
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('restaurants', 'public');
+            $logoPath = app(CloudinaryImageService::class)
+                ->upload($request->file('logo'), 'restaurants');
         }
 
         $restaurant = Restaurant::create([
@@ -125,7 +127,8 @@ class RestaurantController extends Controller
         $logoPath = $restaurant->logo;
 
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('restaurants', 'public');
+            $logoPath = app(CloudinaryImageService::class)
+                ->upload($request->file('logo'), 'restaurants');
         }
 
         $restaurant->update([

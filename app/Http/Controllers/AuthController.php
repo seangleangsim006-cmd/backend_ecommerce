@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\PhoneVerificationCode;
+use App\Services\CloudinaryImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -38,7 +38,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'customer',
             'profile_image' => $request->hasFile('profile_image')
-                ? $request->file('profile_image')->store('profiles', 'public')
+                ? app(CloudinaryImageService::class)->upload($request->file('profile_image'), 'profiles')
                 : null,
         ]);
         if ($user->phone) {
@@ -236,11 +236,9 @@ class AuthController extends Controller
         }
 
         if ($request->hasFile('profile_image')) {
-            if ($user->profile_image) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-
-            $user->profile_image = $request->file('profile_image')->store('profiles', 'public');
+            $oldProfileImage = $user->profile_image;
+            $user->profile_image = app(CloudinaryImageService::class)
+                ->upload($request->file('profile_image'), 'profiles');
         }
 
         if ($request->has('name')) {
@@ -248,6 +246,10 @@ class AuthController extends Controller
         }
 
         $user->save();
+
+        if (isset($oldProfileImage)) {
+            app(CloudinaryImageService::class)->delete($oldProfileImage);
+        }
 
         return response()->json([
             'success' => true,

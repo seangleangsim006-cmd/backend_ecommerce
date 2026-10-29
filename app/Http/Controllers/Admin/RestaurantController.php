@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
+use App\Services\CloudinaryImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -46,7 +47,8 @@ class RestaurantController extends Controller
         
         $logoPath = null;
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
+            $logoPath = app(CloudinaryImageService::class)
+                ->upload($request->file('logo'), 'logos');
         }
 
         $restaurant = Restaurant::create([
@@ -83,7 +85,8 @@ class RestaurantController extends Controller
         
         $logoPath = $restaurant->logo;
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
+            $logoPath = app(CloudinaryImageService::class)
+                ->upload($request->file('logo'), 'logos');
         }
 
         $restaurant->update([

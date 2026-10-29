@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\CloudinaryImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -92,7 +93,8 @@ class ProductController extends Controller
     $imagePath = null;
 
     if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')->store('products', 'public');
+        $imagePath = app(CloudinaryImageService::class)
+            ->upload($request->file('image'), 'products');
     }
 
     // 4. create product
@@ -143,7 +145,8 @@ class ProductController extends Controller
         $imagePath = $product->image;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
+            $imagePath = app(CloudinaryImageService::class)
+                ->upload($request->file('image'), 'products');
         }
 
         $product->update([

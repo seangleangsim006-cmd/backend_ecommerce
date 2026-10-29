@@ -1,10 +1,10 @@
 .git
+.github
 .env
 .env.*
 !.env.example
 vendor
 node_modules
-public/build
 public/hot
 public/storage
 .phpunit.cache

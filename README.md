@@ -21,6 +21,20 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Deploying to Render
+
+Create a Render Web Service using the **Docker** runtime and the repository root as its root directory. Render will use the root `Dockerfile`; the container serves Laravel's `public` directory and listens on Render's `PORT`.
+
+Set these environment variables in Render:
+
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_KEY` (generate a key with `php artisan key:generate --show`)
+- `APP_URL` (your Render service URL)
+- `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` for your database
+
+After connecting the production database, run `php artisan migrate --force` as a deployment pre-deploy command or from the Render shell.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

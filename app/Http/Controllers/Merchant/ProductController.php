@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Restaurant;
+use App\Services\CloudinaryImageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
@@ -104,7 +104,8 @@ class ProductController extends Controller
             ], 404);
         }
 
-        $imagePath = $request->file('image')->store('products', 'public');
+        $imagePath = app(CloudinaryImageService::class)
+            ->upload($request->file('image'), 'products');
 
         $product = Product::create([
             'name' => $request->name,
@@ -170,13 +171,12 @@ class ProductController extends Controller
 
         // handle image
         $imagePath = $product->image;
+        $oldImage = null;
 
         if ($request->hasFile('image')) {
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
-            }
-
-            $imagePath = $request->file('image')->store('products', 'public');
+            $oldImage = $product->image;
+            $imagePath = app(CloudinaryImageService::class)
+                ->upload($request->file('image'), 'products');
         }
 
         $product->update([
@@ -189,6 +189,10 @@ class ProductController extends Controller
             'restaurant_id' => $restaurant->id,
             'is_available' => $request->is_available,
         ]);
+
+        if ($oldImage) {
+            app(CloudinaryImageService::class)->delete($oldImage);
+        }
 
         $product->refresh();
 
@@ -215,9 +219,7 @@ class ProductController extends Controller
             ], 404);
         }
 
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
-        }
+        app(CloudinaryImageService::class)->delete($product->image);
 
         $product->delete();
 

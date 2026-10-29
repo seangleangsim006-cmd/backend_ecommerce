@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Restaurant;
+use App\Services\CloudinaryImageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
@@ -80,8 +80,8 @@ class CategoryController extends Controller
             ], 404);
         }
 
-        $imagePath = $request->file('image')
-            ->store('categories', 'public');
+        $imagePath = app(CloudinaryImageService::class)
+            ->upload($request->file('image'), 'categories');
 
         $category = Category::create([
             'name' => $request->name,
@@ -131,20 +131,20 @@ class CategoryController extends Controller
             ], 400);
         }
 
+        $oldImage = null;
         if ($request->hasFile('image')) {
-            if ($category->image) {
-                Storage::disk('public')
-                    ->delete($category->image);
-            }
-
-            $imagePath = $request->file('image')
-                ->store('categories', 'public');
-
+            $oldImage = $category->image;
+            $imagePath = app(CloudinaryImageService::class)
+                ->upload($request->file('image'), 'categories');
             $category->image = $imagePath;
         }
 
         $category->name = $request->name;
         $category->save();
+
+        if ($oldImage) {
+            app(CloudinaryImageService::class)->delete($oldImage);
+        }
 
         return response()->json([
             'message' => 'Category updated successfully',
@@ -182,10 +182,7 @@ class CategoryController extends Controller
             ], 400);
         }
 
-        if ($category->image) {
-            Storage::disk('public')
-                ->delete($category->image);
-        }
+        app(CloudinaryImageService::class)->delete($category->image);
 
         $category->delete();
 
